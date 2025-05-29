@@ -48,7 +48,6 @@
     }
     .alive { background-color: #00ff00; }
     .dead { background-color: red; }
-    .outzone { background-color: #00ccff !important; }
     .rank {
       font-weight: bold;
       text-align: center;
@@ -57,7 +56,7 @@
       color: #00ccff;
     }
     tr {
-      transition: transform 0.5s ease;
+      transition: all 0.8s ease-in-out;
     }
   </style>
 </head>
@@ -77,8 +76,6 @@
 
   <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSi8hg0w9o8dNFGzyNRNtuyS2L8JYeF5vNJerQzNGk0LPSXv1sUHkk5m6INRDVToXB5k7XlTphG3YuL/pub?gid=97251306&single=true&output=csv';
-
-    let lastData = [];
 
     function loadData() {
       fetch(csvUrl)
@@ -101,10 +98,11 @@
           data.sort((a, b) => b.alive - a.alive || b.kill - a.kill);
 
           const tbody = document.getElementById('table-body');
+          const existingRows = Array.from(tbody.children);
+
           const newHTML = data.map((team, index) => {
             const statusHtml = Array.from({ length: 4 }, (_, idx) => {
-              const baseClass = idx < team.alive ? 'alive' : 'dead';
-              return `<div class="${team.outZone ? 'outzone' : baseClass}"></div>`;
+              return `<div class="${idx < team.alive ? 'alive' : 'dead'}"></div>`;
             }).join('');
 
             return `
