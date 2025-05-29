@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Stats Table</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      background-color: #222;
+      width: 600px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+    }
+    th {
+      background-color: #ff9900;
+      color: black;
+      text-align: center;
+    }
+    td {
+      vertical-align: middle;
+    }
+    .logo {
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+    }
+    .status-bar {
+      display: flex;
+      gap: 2px;
+    }
+    .status-bar div {
+      width: 6px;
+      height: 12px;
+      transition: background-color 0.3s;
+    }
+    .alive { background-color: #00ff00; }
+    .dead { background-color: red; }
+    .outzone { background-color: #00ccff !important; }
+    .rank {
+      font-weight: bold;
+      text-align: center;
+    }
+    .outzone-name {
+      color: #00ccff;
+    }
+    tr {
+      transition: transform 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Team Name</th>
+        <th>Fin.</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+
+  <script>
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSi8hg0w9o8dNFGzyNRNtuyS2L8JYeF5vNJerQzNGk0LPSXv1sUHkk5m6INRDVToXB5k7XlTphG3YuL/pub?gid=97251306&single=true&output=csv';
+
+    let lastData = [];
+
+    function loadData() {
+      fetch(csvUrl)
+        .then(response => response.text())
+        .then(csvText => {
+          const rows = csvText.trim().split('\n').map(row => row.split(','));
+          let data = [];
+
+          for (let i = 3; i <= 14 && i < rows.length; i++) {
+            const row = rows[i];
+            const logo = row[1];
+            const teamName = row[2];
+            const alive = parseInt(row[3]);
+            const kill = parseInt(row[4]);
+            const outZone = row[5].trim().toUpperCase() === 'TRUE';
+
+            data.push({ logo, teamName, alive, kill, outZone });
+          }
+
+          data.sort((a, b) => b.alive - a.alive || b.kill - a.kill);
+
+          const tbody = document.getElementById('table-body');
+          const newHTML = data.map((team, index) => {
+            const statusHtml = Array.from({ length: 4 }, (_, idx) => {
+              const baseClass = idx < team.alive ? 'alive' : 'dead';
+              return `<div class="${team.outZone ? 'outzone' : baseClass}"></div>`;
+            }).join('');
+
+            return `
+              <tr style="transform: translateY(0);">
+                <td class="rank">${index + 1}</td>
+                <td class="${team.outZone ? 'outzone-name' : ''}"><img src="${team.logo}" class="logo" /> ${team.teamName}</td>
+                <td style="text-align:center">${team.kill}</td>
+                <td><div class="status-bar">${statusHtml}</div></td>
+              </tr>`;
+          }).join('');
+
+          tbody.innerHTML = newHTML;
+        })
+        .catch(err => console.error("Error loading data:", err));
+    }
+
+    loadData();
+    setInterval(loadData, 500);
+  </script>
+
+</body>
+</html>
